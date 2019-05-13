@@ -14,6 +14,7 @@ class EditorExtention{
 
     function __construct(){
         // add_filter( 'the_editor', array( $this, 'add_the_content_editor_placeholder') );
+        add_filter( 'gettext_with_context',  array($this, 'custom_gettext_with_context_translation') , 10 );
 
         add_action( 'admin_footer-post.php', array($this, 'customize_editor') , 10 );
         add_action( 'admin_footer-post-new.php', array($this, 'customize_editor') , 10 );
@@ -36,6 +37,11 @@ class EditorExtention{
         return $the_content_editor_html;
     }
 
+    function custom_gettext_with_context_translation( $translation ) {
+        $translation = str_ireplace( 'アイキャッチ', 'サムネイル', $translation );
+        return $translation;
+    }
+    
     /**
      * 設定ページの初期化を行います。
      */
