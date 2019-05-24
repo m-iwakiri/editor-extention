@@ -4,7 +4,7 @@ Plugin Name: Editor Extention
 Plugin URI: http://www.office-iwakiri.com/plugin
 Description: 記事投稿画面を拡張するプラグイン
 Author: m.iwakiri
-Version: 0.2
+Version: 0.3
 Author URI: http://www.office-iwakiri.com
 */
 
@@ -15,13 +15,19 @@ class EditorExtention{
     function __construct(){
         // add_filter( 'the_editor', array( $this, 'add_the_content_editor_placeholder') );
         add_filter( 'gettext_with_context',  array($this, 'custom_gettext_with_context_translation') , 10 );
+        add_action('admin_menu',array($this, 'remove_default_post_screen_metaboxes'), 10);
+        add_filter( 'manage_edit-post_columns', array($this, 'my_custom_manage_aio_columns') );
+        add_filter( 'manage_edit-page_columns', array($this, 'my_custom_manage_aio_columns') );
+        add_action('admin_head', array($this, 'wp_custom_admin_css'), 100);
 
+    
         add_action( 'admin_footer-post.php', array($this, 'customize_editor') , 10 );
         add_action( 'admin_footer-post-new.php', array($this, 'customize_editor') , 10 );
         // 管理メニューに追加するフック
         add_action('admin_menu', array($this, 'add_pages'));
         // ページの初期化を行います。
         add_action( 'admin_init', array( $this, 'page_init' ) );
+        
     }
 
     //管理画面にメニューを追加
@@ -41,6 +47,48 @@ class EditorExtention{
         $translation = str_ireplace( 'アイキャッチ', 'サムネイル', $translation );
         return $translation;
     }
+
+    /***********************************************************
+    * 投稿画面の項目を非表示
+    ***********************************************************/
+    function remove_default_post_screen_metaboxes() {
+        remove_meta_box( 'postcustom','post','normal' ); // カスタムフィールド
+        remove_meta_box( 'postexcerpt','post','normal' ); // 抜粋
+        remove_meta_box( 'commentstatusdiv','post','normal' ); // ディスカッション
+        remove_meta_box( 'commentsdiv','post','normal' ); // コメント
+        remove_meta_box( 'trackbacksdiv','post','normal' ); // トラックバック
+        remove_meta_box( 'authordiv','post','normal' ); // 作成者
+        remove_meta_box( 'slugdiv','post','normal' ); // スラッグ
+        remove_meta_box( 'revisionsdiv','post','normal' ); // リビジョン
+        remove_meta_box( 'aiosp', 'post', 'advanced' ); // All in One SEO Pack
+    }
+    function my_custom_manage_aio_columns($columns) {
+        unset( $columns['seotitle'] );      // タイトル
+        unset( $columns['seokeywords'] );   // キーワード
+        unset( $columns['seodesc'] );       // 説明文
+        return $columns;
+    }
+    function wp_custom_admin_css() {
+        echo <<<EOM
+        <style type="text/css">
+            #aiosp {
+                display:none;
+            }
+            #ez-toc table tr:nth-of-type(n+2){
+                display:none;
+            }
+        </style>
+EOM;
+        echo <<<EOM
+        <script type="text/javascript">
+            jQuery(function(){
+                // todo
+                jQuery('#ez-toc h2').text('目次の設定');
+            });
+        </script>
+EOM;
+    }
+    
     
     /**
      * 設定ページの初期化を行います。
